@@ -127,34 +127,36 @@ WORKDIR /home/root/install/sdr
 ARG homedir=/home/root
 RUN echo "========== Setup enviroment variables ==========" \
   && touch setup_env.sh \
-  && echo -e "LOCALPREFIX=$TARGET_PATH" >> setup_env.sh \
-  && echo -e "export PATH=\$LOCALPREFIX/bin:\$PATH" >> setup_env.sh \
-  && echo -e "export LD_LOAD_LIBRARY=\$LOCALPREFIX/lib:\$LD_LOAD_LIBRARY" >> setup_env.sh \
-  && echo -e "export LD_LIBRARY_PATH=\$LOCALPREFIX/lib:\$LD_LIBRARY_PATH" >> setup_env.sh \
-  && echo -e "export PYTHONPATH=\$LOCALPREFIX/lib/python3.8/site-packages:\$PYTHONPATH" >> setup_env.sh \
-  && echo -e "export PYTHONPATH=\$LOCALPREFIX/lib/python3/dist-packages:\$PYTHONPATH" >> setup_env.sh \
-  && echo -e "export PKG_CONFIG_PATH=\$LOCALPREFIX/lib/pkgconfig:\$PKG_CONFIG_PATH" >> setup_env.sh \
-  && echo -e "export UHD_RFNOC_DIR=\$LOCALPREFIX/share/uhd/rfnoc/" >> setup_env.sh \
-  && echo -e "export UHD_IMAGES_DIR=\$LOCALPREFIX/share/uhd/images" >> setup_env.sh \
-  && echo -e "" >> setup_env.sh \
-  && echo -e "########## for compiling software that depends on UHD" >> setup_env.sh \
-  && echo -e "export UHD_DIR=\$LOCALPREFIX" >> setup_env.sh \
-  && echo -e "export UHD_LIBRARIES=\$LOCALPREFIX/lib" >> setup_env.sh \
-  && echo -e "export UHD_INCLUDE_DIRS=\$LOCALPREFIX/include" >> setup_env.sh \
-  && echo -e "" >> setup_env.sh \
-  && echo -e "########## these vars assist in follow-on install scripts" >> setup_env.sh \
-  && echo -e "export SDR_TARGET_DIR=\$LOCALPREFIX" >> setup_env.sh \
-  && echo -e "export SDR_SRC_DIR=$SRC_PATH" >> setup_env.sh \
-  && echo -e "export GRC_38=$GRC_38" >> setup_env.sh \
-  && echo -e "" >> $homedir/.bashrc \
-  && echo -e "########## points to local install of gnuradio and uhd" >> $homedir/.bashrc \
-  && echo -e "source $TARGET_PATH/setup_env.sh" >> $homedir/.bashrc
+  && chmod +x setup_env.sh \
+  && /bin/echo -e "LOCALPREFIX=$TARGET_PATH" >> setup_env.sh \
+  && /bin/echo -e "export PATH=\$LOCALPREFIX/bin:\$PATH" >> setup_env.sh \
+  && /bin/echo -e "export LD_LOAD_LIBRARY=\$LOCALPREFIX/lib:\$LD_LOAD_LIBRARY" >> setup_env.sh \
+  && /bin/echo -e "export LD_LIBRARY_PATH=\$LOCALPREFIX/lib:\$LD_LIBRARY_PATH" >> setup_env.sh \
+  && /bin/echo -e "export PYTHONPATH=\$LOCALPREFIX/lib/python3.8/site-packages:\$PYTHONPATH" >> setup_env.sh \
+  && /bin/echo -e "export PYTHONPATH=\$LOCALPREFIX/lib/python3/dist-packages:\$PYTHONPATH" >> setup_env.sh \
+  && /bin/echo -e "export PKG_CONFIG_PATH=\$LOCALPREFIX/lib/pkgconfig:\$PKG_CONFIG_PATH" >> setup_env.sh \
+  && /bin/echo -e "export UHD_RFNOC_DIR=\$LOCALPREFIX/share/uhd/rfnoc/" >> setup_env.sh \
+  && /bin/echo -e "export UHD_IMAGES_DIR=\$LOCALPREFIX/share/uhd/images" >> setup_env.sh \
+  && /bin/echo -e "" >> setup_env.sh \
+  && /bin/echo -e "########## for compiling software that depends on UHD" >> setup_env.sh \
+  && /bin/echo -e "export UHD_DIR=\$LOCALPREFIX" >> setup_env.sh \
+  && /bin/echo -e "export UHD_LIBRARIES=\$LOCALPREFIX/lib" >> setup_env.sh \
+  && /bin/echo -e "export UHD_INCLUDE_DIRS=\$LOCALPREFIX/include" >> setup_env.sh \
+  && /bin/echo -e "" >> setup_env.sh \
+  && /bin/echo -e "########## these vars assist in follow-on install scripts" >> setup_env.sh \
+  && /bin/echo -e "export SDR_TARGET_DIR=\$LOCALPREFIX" >> setup_env.sh \
+  && /bin/echo -e "export SDR_SRC_DIR=$SRC_PATH" >> setup_env.sh \
+  && /bin/echo -e "export GRC_38=$GRC_38" >> setup_env.sh \
+  && /bin/echo -e "" >> $homedir/.bashrc \
+  && /bin/echo -e "########## points to local install of gnuradio and uhd" >> $homedir/.bashrc \
+  && /bin/echo -e "source $TARGET_PATH/setup_env.sh" >> $homedir/.bashrc \
+  && ./setup_env.sh
 
 RUN echo "========== Download the UHD images ==========" \
   && $TARGET_PATH/bin/uhd_images_downloader
 
 WORKDIR /home/root/install/grc-install/install_scripts
-RUN ./install_scripts/grc_install_flabs_class.sh
+CMD /bin/bash install_scripts/grc_install_flabs_class.sh
 
 WORKDIR /home/root
 ENTRYPOINT ["/bin/bash"]
