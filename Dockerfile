@@ -60,11 +60,11 @@ RUN echo ========== Install dependencies ========== \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /home/root/install
+WORKDIR /root/install
 
-COPY grc /home/root/install/grc-install/grc
-COPY install_scripts /home/root/install/grc-install/install_scripts
-COPY misc /home/root/install/grc-install/misc
+COPY grc /root/install/grc-install/grc
+COPY install_scripts /root/install/grc-install/install_scripts
+COPY misc /root/install/grc-install/misc
 
 RUN echo "========== Install dependencies for GNU Radio 3.8 & UHD  ==========" \
   && apt-get update && apt-get install -y \
@@ -80,7 +80,7 @@ RUN echo "========== Install dependencies for GNU Radio 3.8 & UHD  ==========" \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /home/root/install/src
+WORKDIR /root/install/src
 ARG UHD_38_VERSION="v3.15.0.0"
 RUN echo "========== Clone UHD ==========" \
   && git clone --recursive https://github.com/EttusResearch/uhd \
@@ -88,12 +88,14 @@ RUN echo "========== Clone UHD ==========" \
   && git checkout $UHD_38_VERSION \
   && git submodule update
 
-ARG TARGET_PATH="/home/root/install/sdr"
-WORKDIR /home/root/install/src/uhd/host/build
+ARG INSTALL_PATH="/root/install"
+ARG TARGET_PATH="/root/install/sdr"
+ARG SRC_PATH="/root/install/src"
+WORKDIR /root/install/src/uhd/host/build
 
 RUN echo "========== Install UHD from source ==========" \
-  && mkdir /home/root/install/sdr
-RUN cmake -DCMAKE_INSTALL_PREFIX=/home/root/install/sdr -DENABLE_PYTHON3=ON -DUHD_RELEASE_MODE=release ../
+  && mkdir /root/install/sdr
+RUN cmake -DCMAKE_INSTALL_PREFIX=/root/install/sdr -DENABLE_PYTHON3=ON -DUHD_RELEASE_MODE=release ../
 RUN make -j 2 \
   && make install
 
@@ -103,7 +105,7 @@ RUN groupadd usrp && usermod -aG usrp root \
   && sh -c "echo '@usrp\t-\trtprio\t99' >> /etc/security/limits.conf"
 
 
-WORKDIR /home/root/install/src
+WORKDIR /root/install/src
 ARG GRC_38_VERSION="v3.8.2.0"
 RUN echo "========== Clone GNURadio ==========" \
   && git clone --recursive https://github.com/gnuradio/gnuradio \
@@ -111,7 +113,7 @@ RUN echo "========== Clone GNURadio ==========" \
   && git checkout $GRC_38_VERSION \
   && git submodule update
 
-WORKDIR /home/root/install/src/gnuradio/build
+WORKDIR /root/install/src/gnuradio/build
 RUN echo "========== Install GNURadio from source ==========" \
   && cmake -DCMAKE_INSTALL_PREFIX=$TARGET_PATH \
   -DUHD_DIR=$TARGET_PATH/lib/cmake/uhd/ \
@@ -123,8 +125,8 @@ RUN make \
   && make install
 
 
-WORKDIR /home/root/install/sdr
-ARG homedir=/home/root
+WORKDIR /root/install/sdr
+ARG homedir=/root
 RUN echo "========== Setup enviroment variables ==========" \
   && touch setup_env.sh \
   && chmod +x setup_env.sh \
@@ -155,8 +157,31 @@ RUN echo "========== Setup enviroment variables ==========" \
 RUN echo "========== Download the UHD images ==========" \
   && $TARGET_PATH/bin/uhd_images_downloader
 
-WORKDIR /home/root/install/grc-install/install_scripts
-CMD /bin/bash install_scripts/grc_install_flabs_class.sh
+WORKDIR /root/install/src
+RUN echo "========== Clone gr-reveng ==========" \
+  && git clone --recursive https://github.com/paulgclark/gr-reveng \
+  && cd gr-reveng \
+  && git checkout master \
+  && git submodule update
+
+WORKDIR /root/install/src/gr-reveng/build
+RUN echo "========== Build gr-reveng ==========" \
+  && cmake -DCMAKE_INSTALL_PREFIX=$TARGET_PATH ../\
+  && make -j 2 \
+  && make install
+
+
+WORKDIR /root/install/src
+RUN echo "========== Clone additional python classes ==========" \
+  && git clone --recursive https://github.com/paulgclark/rf_utilities \
+  && cd gr-reveng \
+  && git checkout master \
+  && git submodule update \
+  && /bin/echo "" >> ~/.bashrc \
+  && /bin/echo "################################" >> ~/.bashrc \
+  && /bin/echo "# Custom code for gnuradio class" >> ~/.bashrc \
+  && /bin/echo "export PYTHONPATH=\$PYTHONPATH:$SDR_SRC_DIR/rf_utilities"  >> ~/.bashrc \
+  && /bin/echo "" >> ~/.bashrc
 
 WORKDIR /home/root
 ENTRYPOINT ["/bin/bash"]
