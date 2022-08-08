@@ -161,4 +161,4 @@ CMD /bin/bash install_scripts/grc_install_flabs_class.sh
 WORKDIR /home/root
 ENTRYPOINT ["/bin/bash"]
 
-LABEL Name=grc-install Version=0.0.1
+LABEL Name=grcinstall Version=0.0.1

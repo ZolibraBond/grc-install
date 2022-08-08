@@ -6,7 +6,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: grc-install
+  IMAGE_NAME: grcinstall
 
 jobs:
   build-and-push-image:
